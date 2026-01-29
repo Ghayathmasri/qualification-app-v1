@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Qualification Intake</title>
+</head>
+<body>
+
+<h2>Qualification Intake Form</h2>
+
+<form id="intake-form">
+
+  <label>Name</label><br>
+  <input id="name" required><br><br>
+
+  <label>Email</label><br>
+  <input id="email" type="email" required><br><br>
+
+  <label>Country</label><br>
+  <input id="country" required><br><br>
+
+  <label>Age Group</label><br>
+  <select id="age_group" required>
+    <option value="">Select</option>
+    <option>18-24</option>
+    <option>25-34</option>
+    <option>35-44</option>
+    <option>45+</option>
+  </select><br><br>
+
+  <label>Native Language</label><br>
+  <input id="native_language" required><br><br>
+
+  <label>Academic Level</label><br>
+  <select id="academic_level" required>
+    <option value="">Select</option>
+    <option>High School</option>
+    <option>Bachelor</option>
+    <option>Master</option>
+    <option>PhD</option>
+  </select><br><br>
+
+  <label>Qualifications (comma separated)</label><br>
+  <input id="qualifications"><br><br>
+
+  <h3>Language Proficiency</h3>
+
+  <div id="languages"></div>
+
+  <button type="button" id="add-lang-btn">Add Language</button>
+  <br><br>
+
+  <button type="submit">Start Qualification</button>
+
+</form>
+
+<script src="/static/intake.js"></script>
+</body>
+</html>

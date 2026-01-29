@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {
+      "id": "t1",
+      "audio_file": "t1.wav",
+      "gold_text": "Hello this is John speaking from customer support"
+    },
+    {
+      "id": "t2",
+      "audio_file": "t2.wav",
+      "gold_text": "Please confirm your account number before we proceed"
+    },
+    {
+      "id": "t3",
+      "audio_file": "t3.wav",
+      "gold_text": "The agent transferred the call to technical support"
+    },
+    {
+      "id": "t4",
+      "audio_file": "t4.wav",
+      "gold_text": "Thank you for calling we are happy to assist you today"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+session_id,project,name,email,country,age_group,native_language,academic_level,qualification,language_proficiency,mcq_score,transcription_score,final_result
+19c218bd-1e6a-4aaf-b492-c96b8523feea,transcription,Ghayath Mohammad J Radi Almasri,ghayathmasri@gmail.com,United States,25-34,Arabic,Bachelor,asfasfas,[{"language": "Arabic", "reading": "Native", "writing": "Native", "listening": "Native", "speaking": "Native"}],0.6666666666666666,None,FAIL

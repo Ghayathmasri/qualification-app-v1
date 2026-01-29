@@ -1,0 +1,30 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "How many speakers are in the audio?",
+      "options": ["1", "2", "3", "4"],
+      "correct": "2",
+      "topic": "speaker_count"
+    },
+    {
+      "id": "q2",
+      "question": "Should you paraphrase unclear audio?",
+      "options": ["Yes", "No"],
+      "correct": "No",
+      "topic": "training_rules"
+    },
+    {
+      "id": "q3",
+      "question": "What should you do if a word is unclear?",
+      "options": [
+        "Guess the word",
+        "Leave it out",
+        "Transcribe exactly what you hear",
+        "Fix the grammar"
+      ],
+      "correct": "Transcribe exactly what you hear",
+      "topic": "training_rules"
+    }
+  ]
+}

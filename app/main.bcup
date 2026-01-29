@@ -1,0 +1,352 @@
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, EmailStr
+from typing import List, Dict
+import uuid
+import json
+import random
+import csv
+import io
+from pathlib import Path
+
+from app.db import init_db, save_session, load_session, load_all_sessions
+
+# -------------------------------------------------
+# App setup
+# -------------------------------------------------
+
+app = FastAPI(title="Qualification App", version="2.2")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+init_db()
+
+# -------------------------------------------------
+# Paths
+# -------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+AUDIO_DIR = BASE_DIR / "audio"
+STATIC_DIR = BASE_DIR / "static"
+
+QUESTIONS_FILE = DATA_DIR / "questions.json"
+TRANSCRIPTION_FILE = DATA_DIR / "transcription_tasks.json"
+TRAINING_FILE = DATA_DIR / "training_content.json"
+
+app.mount("/audio", StaticFiles(directory=AUDIO_DIR), name="audio")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# -------------------------------------------------
+# Models
+# -------------------------------------------------
+
+class LanguageProficiency(BaseModel):
+    language: str
+    reading: str
+    writing: str
+    listening: str
+    speaking: str
+
+
+class IntakeData(BaseModel):
+    name: str
+    email: EmailStr
+    country: str
+    age_group: str
+    native_language: str
+    academic_level: str
+    qualifications: List[str]
+    language_proficiency: List[LanguageProficiency]
+
+
+class TrainingCompleteRequest(BaseModel):
+    session_id: str
+
+
+class SessionRequest(BaseModel):
+    session_id: str
+
+
+class MCQSubmission(BaseModel):
+    session_id: str
+    answers: Dict[str, str]
+
+
+class TranscriptionSubmission(BaseModel):
+    session_id: str
+    task_id: str
+    transcription: str
+
+# -------------------------------------------------
+# Utilities
+# -------------------------------------------------
+
+def require_training_completed(payload: SessionRequest):
+    s = load_session(payload.session_id)
+    if not s:
+        raise HTTPException(404, "Invalid session_id")
+    if not s["training_done"]:
+        raise HTTPException(403, "Training not completed")
+    return payload.session_id
+
+
+def load_questions():
+    return json.load(open(QUESTIONS_FILE, encoding="utf-8"))["questions"]
+
+
+def load_transcription_tasks():
+    return json.load(open(TRANSCRIPTION_FILE, encoding="utf-8"))["tasks"]
+
+
+def load_training_content():
+    return json.load(open(TRAINING_FILE, encoding="utf-8"))
+
+
+def normalize(text):
+    return text.lower().replace(",", "").replace(".", "").split()
+
+
+def wer(ref, hyp):
+    dp = [[0] * (len(hyp) + 1) for _ in range(len(ref) + 1)]
+    for i in range(len(ref) + 1):
+        dp[i][0] = i
+    for j in range(len(hyp) + 1):
+        dp[0][j] = j
+    for i in range(1, len(ref) + 1):
+        for j in range(1, len(hyp) + 1):
+            dp[i][j] = dp[i - 1][j - 1] if ref[i - 1] == hyp[j - 1] else min(
+                dp[i - 1][j],
+                dp[i][j - 1],
+                dp[i - 1][j - 1]
+            ) + 1
+    return dp[-1][-1] / max(len(ref), 1)
+
+# -------------------------------------------------
+# GET endpoints
+# -------------------------------------------------
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/training")
+def get_training():
+    return load_training_content()
+
+# -------------------------------------------------
+# Core flow
+# -------------------------------------------------
+
+@app.post("/start")
+def start(data: IntakeData):
+    sid = str(uuid.uuid4())
+    session = {
+        "user": data.dict(),
+        "training_done": False,
+        "assigned_questions": None,
+        "mcq_answers": None,
+        "mcq_score": None,
+        "assigned_transcriptions": None,
+        "current_transcription_index": 0,
+        "transcription_submissions": {},
+        "transcription_score": None,
+        "final_result": None
+    }
+    save_session(sid, session)
+    return {"session_id": sid}
+
+
+@app.post("/training_complete")
+def training_done(req: TrainingCompleteRequest):
+    s = load_session(req.session_id)
+    if not s:
+        raise HTTPException(404, "Invalid session_id")
+    s["training_done"] = True
+    save_session(req.session_id, s)
+    return {"status": "ok"}
+
+
+@app.post("/quiz")
+def quiz(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+
+    if s["assigned_questions"] is None:
+        qs = random.sample(load_questions(), 3)
+        for q in qs:
+            random.shuffle(q["options"])
+        s["assigned_questions"] = qs
+        save_session(session_id, s)
+
+    return {
+        "questions": [
+            {k: v for k, v in q.items() if k != "correct"}
+            for q in s["assigned_questions"]
+        ]
+    }
+
+
+@app.post("/submit_mcq")
+def submit_mcq(p: MCQSubmission):
+    s = load_session(p.session_id)
+    if s["mcq_answers"] is not None:
+        raise HTTPException(400, "MCQ already submitted")
+
+    s["mcq_answers"] = p.answers
+    save_session(p.session_id, s)
+    return {"status": "ok"}
+
+
+@app.post("/grade_mcq")
+def grade_mcq(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+
+    if s["mcq_score"] is not None:
+        raise HTTPException(400, "MCQ already graded")
+
+    score = sum(
+        s["mcq_answers"].get(q["id"]) == q["correct"]
+        for q in s["assigned_questions"]
+    ) / len(s["assigned_questions"]) * 100
+
+    s["mcq_score"] = round(score, 2)
+    save_session(session_id, s)
+    return {"mcq_score": s["mcq_score"]}
+
+
+@app.post("/transcription_task")
+def transcription_task(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+
+    if s["assigned_transcriptions"] is None:
+        s["assigned_transcriptions"] = load_transcription_tasks()
+        save_session(session_id, s)
+
+    idx = s["current_transcription_index"]
+    if idx >= len(s["assigned_transcriptions"]):
+        return {"status": "completed"}
+
+    t = s["assigned_transcriptions"][idx]
+    return {
+        "task_id": t["id"],
+        "audio_url": f"/audio/{t['audio_file']}",
+        "index": idx + 1,
+        "total": len(s["assigned_transcriptions"])
+    }
+
+
+@app.post("/submit_transcription")
+def submit_transcription(p: TranscriptionSubmission):
+    s = load_session(p.session_id)
+
+    if p.task_id in s["transcription_submissions"]:
+        raise HTTPException(400, "Task already submitted")
+
+    idx = s["current_transcription_index"]
+    expected = s["assigned_transcriptions"][idx]["id"]
+
+    if p.task_id != expected:
+        raise HTTPException(400, "Out-of-order transcription")
+
+    s["transcription_submissions"][p.task_id] = p.transcription
+    s["current_transcription_index"] += 1
+    save_session(p.session_id, s)
+    return {"status": "ok"}
+
+
+@app.post("/grade_transcription")
+def grade_transcription(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+
+    if s["transcription_score"] is not None:
+        raise HTTPException(400, "Transcription already graded")
+
+    if len(s["transcription_submissions"]) != len(s["assigned_transcriptions"]):
+        raise HTTPException(400, "Not all transcriptions submitted")
+
+    total = 0.0
+    for t in s["assigned_transcriptions"]:
+        ref = normalize(t["gold_text"])
+        hyp = normalize(s["transcription_submissions"][t["id"]])
+        total += (1 - wer(ref, hyp)) * 100
+
+    s["transcription_score"] = round(total / len(s["assigned_transcriptions"]), 2)
+    save_session(session_id, s)
+    return {"transcription_score": s["transcription_score"]}
+
+
+@app.post("/evaluate_final")
+def evaluate_final(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+
+    if s["final_result"] is not None:
+        raise HTTPException(400, "Already evaluated")
+
+    s["final_result"] = "PASS" if (
+        s["mcq_score"] >= 70 and s["transcription_score"] >= 85
+    ) else "FAIL"
+
+    save_session(session_id, s)
+    return {"status": "evaluated"}
+
+
+@app.post("/close")
+def close_session(session_id: str = Depends(require_training_completed)):
+    s = load_session(session_id)
+    if s["final_result"] is None:
+        raise HTTPException(400, "Evaluation not completed")
+    return {"message": "Thank you for completing the qualification task."}
+
+
+@app.get("/export/csv")
+def export_csv():
+    sessions = load_all_sessions()
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "session_id",
+        "name",
+        "email",
+        "country",
+        "age_group",
+        "native_language",
+        "academic_level",
+        "qualifications",
+        "language_proficiency",
+        "mcq_score",
+        "transcription_score",
+        "final_result"
+    ])
+
+    for sid, s in sessions.items():
+        u = s["user"]
+        writer.writerow([
+            sid,
+            u["name"],
+            u["email"],
+            u["country"],
+            u["age_group"],
+            u["native_language"],
+            u["academic_level"],
+            "|".join(u["qualifications"]),
+            json.dumps(u["language_proficiency"], ensure_ascii=False),
+            s["mcq_score"],
+            s["transcription_score"],
+            s["final_result"]
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=qualification_results.csv"}
+    )
