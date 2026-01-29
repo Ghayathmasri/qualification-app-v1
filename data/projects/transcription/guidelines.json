@@ -1,0 +1,13 @@
+{
+  "title": "Transcription Training",
+  "rules": [
+    "Transcribe exactly what you hear",
+    "Do not correct grammar",
+    "Do not paraphrase",
+    "Do not guess unclear audio"
+  ],
+  "videos": [
+  "/static/training.mp4"
+]
+
+}
