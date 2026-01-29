@@ -1,9 +1,41 @@
 {
-  "title": "Transcription Training",
+  "title": "Transcription Guidelines",
   "rules": [
-    "Transcribe exactly what you hear",
-    "Do not correct grammar",
-    "Do not paraphrase",
+    "Transcription is the
+commitment of an audio
+signal to textual
+representation. This can
+include representing speech
+data as well as other sound
+types such as phones ringing
+or music. In order to train
+machine intelligence
+transcription systems, the
+training data must be of
+high quality.",
+    "Segment BEFORE
+transcription​
+
+Each Speech segment
+= one speaker only​
+
+If speakers overlap
+heavily → Babble
+segment​
+
+Silence ≥ 1 second →
+keep segment, mark
+later as [no-speech]​",
+    "Audio: Speaker A talks, Speaker B
+interrupts​
+
+Create TWO Speech segments​
+
+Do NOT mix speakers in one
+segment​
+
+Overlapping part handled later with
+<overlap> tags​",
     "Do not guess unclear audio"
   ],
   "videos": [
