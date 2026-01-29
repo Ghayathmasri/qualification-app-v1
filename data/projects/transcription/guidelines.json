@@ -1,8 +1,8 @@
 {
   "title": "Transcription Training 101",
   "rules": [
-    "Step1:",
-    "Step2",
+    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
+    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
     "Step3",
     "Step4"
   ],
