@@ -2,6 +2,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from jiwer import wer
+import os
 
 # -------------------------------------------------
 # App initialization
@@ -13,13 +14,15 @@ app = FastAPI(
 )
 
 # -------------------------------------------------
-# STATIC FILES (if you use them)
+# STATIC FILES (THIS IS THE MISSING PIECE)
 # -------------------------------------------------
-# Uncomment ONLY if you already had static files locally
-# app.mount("/static", StaticFiles(directory="static"), name="static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "..", "static")
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # -------------------------------------------------
-# HOME PAGE (NEW – FOR DEMO)
+# HOME PAGE
 # -------------------------------------------------
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -27,59 +30,34 @@ def home():
     <html>
         <head>
             <title>Qualification App v1</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background: #f7f7f7;
-                    padding: 40px;
-                }
-                .box {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 8px;
-                    max-width: 600px;
-                    margin: auto;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }
-                h1 { color: #333; }
-                a {
-                    display: inline-block;
-                    margin-top: 15px;
-                    padding: 10px 15px;
-                    background: #2563eb;
-                    color: white;
-                    text-decoration: none;
-                    border-radius: 5px;
-                }
-            </style>
         </head>
-        <body>
-            <div class="box">
-                <h1>Qualification App v1</h1>
-                <p>Status: <b>LIVE</b></p>
-                <p>This is a frozen v1 demo environment.</p>
-                <a href="/docs">Open API Demo (Swagger UI)</a>
-            </div>
+        <body style="font-family: Arial; padding: 40px;">
+            <h1>Qualification App v1</h1>
+            <p>Status: <b>LIVE</b></p>
+
+            <ul>
+                <li><a href="/static/intake.html?project=transcription">
+                    Open Qualification Intake Form
+                </a></li>
+                <li><a href="/docs">API Documentation</a></li>
+            </ul>
         </body>
     </html>
     """
 
 # -------------------------------------------------
-# EXISTING ENDPOINTS (KEEP YOURS BELOW)
+# API ENDPOINTS (UNCHANGED)
 # -------------------------------------------------
-
 @app.post("/evaluate")
 async def evaluate(
     reference: str = Form(...),
     hypothesis: str = Form(...)
 ):
     score = wer(reference, hypothesis)
-    return {
-        "wer": score
-    }
+    return {"wer": score}
 
 # -------------------------------------------------
-# HEALTH CHECK (OPTIONAL BUT GOOD)
+# HEALTH CHECK
 # -------------------------------------------------
 @app.get("/health")
 def health():
