@@ -7,7 +7,6 @@
     "Do not guess unclear audio"
   ],
   "videos": [
-  "/static/training.mp4"
-]
-
+    "https://www.youtube.com/embed/RIpHGWLIqYg"
+  ]
 }
