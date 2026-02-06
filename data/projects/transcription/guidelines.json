@@ -1,38 +1,27 @@
 {
-  "title": "Transcription Training 101",
+  "title": "Transcription Training",
   "rules": [
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-    "Create a Speech segment foe each Speaker, Do NOT mix speakers in one segment​",
-    "Allowed Characters, Letters (A–Z, a–z)​,Approved punctuation: . , ? ! ' Never use numerals or symbols like $, @, + ",
-    "Step3",
-    "Step4"
-
+    "Read all training documents carefully",
+    "Complete each document before watching the video",
+    "Training must be completed before quiz"
   ],
-  "videos": [
-  "/static/training.mp4"
-]
-
+  "materials": [
+    {
+      "label": "Overlapping Speech Guidelines",
+      "file": "/static/projects/transcription/training/Overlapping.pdf"
+    },
+    {
+      "label": "Speaker Labeling Rules",
+      "file": "/static/projects/transcription/training/Speaker_Labeling.pdf"
+    },
+    {
+      "label": "Transcription Guidelines",
+      "file": "/static/projects/transcription/training/Transcription_Guidelines.pdf"
+    },
+    {
+      "label": "Training Presentation",
+      "file": "/static/projects/transcription/training/transcription_Presentation.pptx"
+    }
+  ],
+  "video": "/static/projects/transcription/training/training.mp4"
 }

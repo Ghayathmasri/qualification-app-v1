@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Training</title>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    .material { margin-bottom: 15px; }
+    button { margin-top: 10px; }
+    video { width: 100%; margin-top: 20px; }
+  </style>
 </head>
 <body>
 
-<h2 id="training-title"></h2>
+<h1 id="title"></h1>
 
-<ul id="training-rules"></ul>
+<ul id="rules"></ul>
 
-<div id="training-videos"></div>
+<h2>Training Materials</h2>
+<div id="materials"></div>
 
-<button id="continue-btn">I Understand & Continue</button>
+<h2>Training Video</h2>
+<div id="video-container"></div>
 
-<script src="/static/training.js"></script>
+<!-- 🔒 CRITICAL FIX: button is NOT inside a form and NOT submit -->
+<button id="continue-btn" type="button" disabled>Continue</button>
+
+<script src="training.js"></script>
 </body>
 </html>

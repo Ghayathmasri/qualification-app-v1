@@ -1,5 +1,4 @@
 // static/quiz.js
-// FINAL – deterministic session handling (no storage dependency)
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -12,7 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Load quiz
   const res = await fetch("/quiz", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -27,14 +25,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const data = await res.json();
   const container = document.getElementById("questions");
 
-  if (!data.questions || data.questions.length === 0) {
-    container.innerText = "No quiz required.";
-    return;
-  }
+  // 🔥 NO GUARD, NO MESSAGE — HARD FAILURE IF WRONG
+  container.innerHTML = "";
 
-  // Render questions
   data.questions.forEach(q => {
     const div = document.createElement("div");
+    div.className = "question";
     div.innerHTML = `<p>${q.question}</p>`;
 
     q.options.forEach(opt => {
@@ -50,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.appendChild(div);
   });
 
-  // Submit quiz
   document.getElementById("quiz-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 

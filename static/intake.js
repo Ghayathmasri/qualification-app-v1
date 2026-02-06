@@ -1,12 +1,5 @@
-// static/intake.js
-// FIXED: session_id persistence for quiz & training
-
 document.addEventListener("DOMContentLoaded", () => {
-
   const form = document.getElementById("intake-form");
-  const addBtn = document.getElementById("add-lang-btn");
-
-  addBtn.addEventListener("click", addLanguage);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -18,17 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const language_proficiency = [];
-    document.querySelectorAll(".lang-row").forEach(row => {
-      language_proficiency.push({
-        language: row.querySelector(".lang-name").value,
-        reading: row.querySelector(".lang-reading").value,
-        writing: row.querySelector(".lang-writing").value,
-        listening: row.querySelector(".lang-listening").value,
-        speaking: row.querySelector(".lang-speaking").value
-      });
-    });
-
     const payload = {
       name: document.getElementById("name").value,
       email: document.getElementById("email").value,
@@ -37,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
       native_language: document.getElementById("native_language").value,
       academic_level: document.getElementById("academic_level").value,
       qualifications: document.getElementById("qualifications").value,
-      language_proficiency
+      language_proficiency: []
     };
 
     const res = await fetch(`/start?project=${project}`, {
@@ -53,27 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const data = await res.json();
 
-    // ✅ CRITICAL FIX
+    // 🔒 SINGLE SOURCE OF TRUTH
     localStorage.setItem("session_id", data.session_id);
 
-    window.location.href = `/static/training.html?project=${project}`;
+    // 🔒 PASS SESSION EXPLICITLY
+    window.location.href =
+      `/static/training.html?project=${project}&session_id=${data.session_id}`;
   });
 });
-
-function addLanguage() {
-  const box = document.getElementById("languages");
-
-  const row = document.createElement("div");
-  row.className = "lang-row";
-
-  row.innerHTML = `
-    <input class="lang-name" placeholder="Language">
-    <input class="lang-reading" placeholder="Reading">
-    <input class="lang-writing" placeholder="Writing">
-    <input class="lang-listening" placeholder="Listening">
-    <input class="lang-speaking" placeholder="Speaking">
-    <hr>
-  `;
-
-  box.appendChild(row);
-}
